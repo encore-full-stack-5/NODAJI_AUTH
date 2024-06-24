@@ -1,15 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import {
-  BeforeInsert,
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryColumn,
-} from 'typeorm';
+import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryColumn('uuid')
+  static builder() {
+    throw new Error('Method not implemented.');
+  }
+  @PrimaryGeneratedColumn('uuid') 
   id: string;
 
   @Column()
@@ -22,6 +19,12 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
+  rank: number;
+
+  @Column({ nullable: true })
+  game: string;
+
+  @Column({ nullable: true })
   point: number;
 
   @Column({ nullable: true })
@@ -30,8 +33,13 @@ export class User {
   @CreateDateColumn()
   date: Date;
 
+  @Column({ default: false, nullable: true })
+  certification: boolean;
+
   @BeforeInsert()
   generateId() {
-    this.id = uuidv4();
+    if (!this.id) {
+      this.id = uuidv4();
+    }
   }
 }

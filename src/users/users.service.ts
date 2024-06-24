@@ -4,11 +4,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './User.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { RequestDTO } from './dto/RequestDTO.dto';
 import { JwtService } from '@nestjs/jwt';
+import { User } from './user.entity';
+import { KafkaService } from 'src/kafka/kafka.service';
 
 @Injectable()
 export class UsersService {
@@ -16,31 +17,23 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
+    private readonly kafkaService: KafkaService,
   ) {}
 
-  async getAllUsers(): Promise<User[] | null> {
-    const users = await this.userRepository.find();
-
-    return users;
-  }
-
   async findById(id: string): Promise<User | null> {
-    const user = this.userRepository.findOne({ where: { id: id } });
-    const { ...result } = user;
+    const user = await this.userRepository.findOne({ where: { id: id } });
     return user;
   }
 
   async findByPassword(req: RequestDTO): Promise<User | null> {
-    const user = this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { password: req.password },
     });
-    const { ...result } = user;
     return user;
   }
 
-  async findByEmail(req: RequestDTO): Promise<User | null> {
-    const user = this.userRepository.findOne({ where: { email: req.email } });
-    const { ...result } = user;
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({ where: { email: email } });
     return user;
   }
 
@@ -56,9 +49,8 @@ export class UsersService {
       name: findUser.name,
       email: findUser.email,
     };
-    return {
-      authorization: await this.jwtService.signAsync(payload),
-    };
+    const token = await this.jwtService.signAsync(payload);
+    return { authorization: `Bearer ${token}` };
   }
 
   async changePassword(req: RequestDTO): Promise<void> {
@@ -69,7 +61,7 @@ export class UsersService {
     const isMatch = await bcrypt.compare(req.password, findUser.password);
     if (isMatch)
       throw new NotAcceptableException(
-        'The new password cannot be the same as the old password.',
+        '비밀번호가 동일합니다.',
       );
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(req.password, saltOrRounds);
@@ -84,6 +76,10 @@ export class UsersService {
     if (exist) {
       throw new NotAcceptableException();
     }
+
+    const findCertification = req.certification;
+    await this.handleCertification(req.email, findCertification);
+
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(req.password, saltOrRounds);
     const user = new User();
@@ -93,5 +89,19 @@ export class UsersService {
     user.point = req.point;
     user.date = new Date();
     await this.userRepository.save(user);
+
+    await this.kafkaService.sendUpdateMessage(user, findCertification);
+  }
+
+  async handleCertification(email: string, certification: string): Promise<void> {
+    const isTrue = certification === 'expectedCertificationValue';
+    console.log(`Handling certification for ${email}:`, certification);
+    console.log(`Certification match: ${isTrue}`);
+
+    if (!isTrue) {
+      throw new NotAcceptableException('인증 실패');
+    }
+
+    console.log('인증 성공');
   }
 }

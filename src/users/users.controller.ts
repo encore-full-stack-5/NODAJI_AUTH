@@ -6,57 +6,59 @@ import {
   HttpStatus,
   Post,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { RequestDTO } from './dto/RequestDTO.dto';
 import { UsersService } from './users.service';
 import { UserGuard } from './users.guard';
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(UserGuard)
-  @Get()
-  async getAllUser() {
-    const users = await this.userService.getAllUsers();
-    return users;
-  }
+
+ 
+
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserGuard)
   @Get('id')
-  async findById(@Body() id: string) {
-    const users = await this.userService.findById(id);
-    return users;
+  async findById(@Body('id') id: string) {
+    const user = await this.userService.findById(id);
+    return user;
   }
+
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserGuard)
   @Get('password')
   async findByPassword(@Body() req: RequestDTO) {
-    const users = await this.userService.findByPassword(req);
-    return users;
+    const user = await this.userService.findByPassword(req);
+    return user;
   }
+
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserGuard)
   @Get('email')
-  async findByEmail(@Body() req: RequestDTO) {
-    const users = await this.userService.findByEmail(req);
-    return users;
-  }
-  @HttpCode(HttpStatus.OK)
-  @Post('login')
-  async login(@Body() req: RequestDTO) {
-    const user = await this.userService.login(req);
+  async findByEmail(@Body('email') email: string) {
+    const user = await this.userService.findByEmail(email);
     return user;
   }
+
+  @Post('login')
+  async login(@Body() req: RequestDTO, @Res() res: Response) {
+    const result = await this.userService.login(req);
+    res.setHeader('Authorization', result.authorization);
+    res.sendStatus(HttpStatus.OK);
+  }
+
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserGuard)
   @Post('password')
   async changePassword(@Body() req: RequestDTO) {
-    const sucess = await this.userService.changePassword(req);
+    await this.userService.changePassword(req);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post()
+  @Post('signUp')
   async saveUser(@Body() req: RequestDTO) {
     await this.userService.save(req);
   }
