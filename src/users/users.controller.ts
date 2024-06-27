@@ -17,8 +17,6 @@ import { Response } from 'express';
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
- 
-
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserGuard)
   @Get('id')
@@ -60,17 +58,14 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Post('signUp')
   async saveUser(@Body() req: RequestDTO) {
-    await this.userService.save(req);
+    const userEmail = await this.userService.save(req);
+    return userEmail;
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('certification')
-  async certificationRequest(@Body() req: RequestDTO) {
+  async certificationRequest(@Body() req: RequestDTO, @Res() res: Response) {
     await this.userService.certificationRequest(req);
+    return res.json({ message: "입력해주신 이메일에 인증번호를 찾아 인증해주세요." });
   }
-
- 
-
-
-
 }

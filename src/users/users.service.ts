@@ -48,7 +48,7 @@ export class UsersService {
     const isMatch = await bcrypt.compare(req.password, findUser.password);
     if (!isMatch) throw new NotAcceptableException('비밀번호가 틀렸습니다.');
     const payload = {
-      sub: findUser.id,
+      id: findUser.id,
       name: findUser.name,
       email: findUser.email,
     };
@@ -83,7 +83,7 @@ export class UsersService {
     await this.kafkaService.sendSinupMessge(req); // nodagi_email 서버로 인증 메일 요청 보내기
   }
 
-  async save(req: RequestDTO): Promise<void> {
+  async save(req: RequestDTO): Promise<String> {
     
     const findCertification = await this.redisService.getValueByKey(req.email); // 3분 유효시간안에 Redis에서 인증 값 찾기
     const isTrue = await this.handleCertification(req.email, findCertification, req.confirmationRequest);
@@ -106,6 +106,7 @@ export class UsersService {
     await this.userRepository.save(user); // 유저 저장
     await this.kafkaService.sendUpdateMessage(user); // nodagi_email 서버로 유저 정보 전달
     await this.kafkaService.sendAccountMessage(user); // nodagi_account 서버로 유저 정보 전달
+    return user.email;
   
   }
 
@@ -124,6 +125,7 @@ async updateUserPoints(userId: string, points: number): Promise<User> {
   }
   throw new Error('User not found');
 }
+
 
 }
 
