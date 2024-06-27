@@ -5,7 +5,8 @@ import { Transport, MicroserviceOptions } from '@nestjs/microservices'; // 마�
 async function bootstrap() { // 애플리케이션 부트스트랩을 위한 비동기 함수 정의
   const app = await NestFactory.create(AppModule); // AppModule을 기반으로 NestJS 애플리케이션 생성
 
-  app.connectMicroservice<MicroserviceOptions>({ // 마이크로서비스를 애플리케이션에 연결
+  // Kafka 마이크로서비스 설정
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA, // 트랜스포트 타입을 Kafka로 설정
     options: { // Kafka 클라이언트와 소비자 옵션 설정
       client: { // Kafka 클라이언트 설정
@@ -18,7 +19,17 @@ async function bootstrap() { // 애플리케이션 부트스트랩을 위한 비
     },
   });
 
+  // Redis 마이크로서비스 설정
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.REDIS, // 트랜스포트 타입을 Redis로 설정
+    options: {
+      host: 'localhost', // Redis 호스트 설정
+      port: 6379, // Redis 포트 설정
+    },
+  });
+
   await app.startAllMicroservices(); // 모든 마이크로서비스를 시작
   await app.listen(3000); // HTTP 서버를 포트 3000에서 시작
 }
+
 bootstrap(); // 부트스트랩 함수 실행

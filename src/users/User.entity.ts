@@ -1,12 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
-import { BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
-  static builder() {
-    throw new Error('Method not implemented.');
-  }
-  @PrimaryGeneratedColumn('uuid') 
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -35,11 +32,4 @@ export class User {
 
   @Column({ default: false, nullable: true })
   certification: boolean;
-
-  @BeforeInsert()
-  generateId() {
-    if (!this.id) {
-      this.id = uuidv4();
-    }
-  }
 }

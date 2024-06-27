@@ -3,47 +3,67 @@ import { UsersService } from '../users/users.service';
 import { KafkaUserDto } from './dto/KafkaUserDto';
 import { ClientKafka } from '@nestjs/microservices';
 import { User } from '../users/user.entity';
+import { RequestDTO } from 'src/users/dto/RequestDTO.dto';
+import { KafkaAccountDto } from './dto/KafkaAccountDto';
+import { KafkaEmailDto } from './dto/KafkaEmailDto';
 
 @Injectable()
 export class KafkaService {
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
-    @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka, // ClientKafka 주입
+    @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka, 
+    @Inject('ACCOUNT_KAFKA_SERVICE') private readonly accountClientKafka: ClientKafka, 
   ) {}
 
-  async sendMessage(topic: string, message: string): Promise<void> {
+  async sendUpdateMessage(user: User): Promise<void> {
+    const userDto: KafkaUserDto = this.createKafkaUserDto(user);
+    const topic = 'user-topic';
+    const message = { status: 'update', data: userDto }; 
+    await this.clientKafka.emit(topic, message); 
+  }
+
+  async sendAccountMessage(user: User): Promise<void> {
+    const accountDto: KafkaAccountDto = this.createKafkaAccountDto(user);
+    const topic = 'account-topic';
+    const message = { status: 'createAccount', data: accountDto }; 
+    await this.accountClientKafka.emit(topic, message); 
+  }
+
+  async sendSinupMessge(req: RequestDTO): Promise<void> { 
+    const userDto: KafkaUserDto = this.createKafkaUserDto(req); 
+    const topic = 'email-topic';
+    const message = { status: 'singUp', data: userDto }; 
     await this.clientKafka.emit(topic, message);
-    console.log(`Message sent to ${topic}: ${message}`);
   }
 
-  async sendUpdateMessage(user: User, certification: string): Promise<void> {
-    const userDto: KafkaUserDto = this.createKafkaUserDto(user, certification);
-    const topic = 'user-update-topic';
-    await this.clientKafka.emit(topic, userDto);
-    console.log(`User update message sent: ${userDto.email}`);
+  createKafkaEmailDto(user: User): KafkaEmailDto  { 
+    return {
+      email: user.email
+    };
   }
 
-  createKafkaUserDto(user: User, certification: string): KafkaUserDto {
+  createKafkaAccountDto(user: User): KafkaAccountDto  { 
+    return {
+      userId: user.id
+    };
+  }
+
+  createKafkaUserDto(user: any): KafkaUserDto { 
     return {
       id: user.id,
       email: user.email,
       game: user.game,
       point: user.point,
       rank: user.rank,
-      name: user.name,
-      certification: certification,
-      converter: function (email: string): string[] {
-        throw new Error('Function not implemented.');
-      },
-      converterFromList: function (emails: string[]): string[] {
-        throw new Error('Function not implemented.');
-      }
+      name: user.name
     };
   }
 
   async onModuleInit() {
-    this.clientKafka.subscribeToResponseOf('user-update-topic');
+    this.clientKafka.subscribeToResponseOf('account-topic');
+    this.accountClientKafka.subscribeToResponseOf('account-topic'); 
     await this.clientKafka.connect();
+    await this.accountClientKafka.connect(); 
   }
 }

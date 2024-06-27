@@ -62,4 +62,15 @@ export class UsersController {
   async saveUser(@Body() req: RequestDTO) {
     await this.userService.save(req);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('certification')
+  async certificationRequest(@Body() req: RequestDTO) {
+    await this.userService.certificationRequest(req);
+  }
+
+ 
+
+
+
 }

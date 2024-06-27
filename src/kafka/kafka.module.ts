@@ -1,22 +1,29 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Module, OnModuleInit, forwardRef } from '@nestjs/common';
 import { KafkaService } from './kafka.service';
-import { UsersModule } from '../users/users.module'; // UsersModule 임포트
+import { UsersModule } from '../users/users.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { consumeMessages, setUserService } from './kafka.consumer';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [
-    forwardRef(() => UsersModule), // UsersModule을 forwardRef로 가져옴
+    forwardRef(() => UsersModule), 
     ClientsModule.register([
       {
         name: 'KAFKA_SERVICE',
-        transport: Transport.KAFKA,//
+        transport: Transport.KAFKA,
         options: {
           client: {
-            clientId: 'nodaji',
             brokers: ['192.168.0.20:9092'],
           },
-          consumer: {
-            groupId: 'email-group',
+        },
+      },
+      {
+        name: 'ACCOUNT_KAFKA_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: ['192.168.0.20:9092'],
           },
         },
       },
@@ -25,4 +32,11 @@ import { UsersModule } from '../users/users.module'; // UsersModule 임포트
   providers: [KafkaService],
   exports: [KafkaService],
 })
-export class KafkaModule {}
+export class KafkaModule implements OnModuleInit {
+  constructor(private readonly usersService: UsersService) {}
+
+  async onModuleInit() {
+    setUserService(this.usersService); 
+    await consumeMessages('account-topic');
+  }
+}

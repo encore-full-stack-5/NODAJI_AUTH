@@ -1,5 +1,4 @@
 export class KafkaUserDto {
-    certification: any;
     constructor(
       public id: string,
       public point: number,
@@ -10,13 +9,6 @@ export class KafkaUserDto {
       
 
     ) {}
-  
-    public converter(email: string): string[] {
-      return [email];
-    }
-  
-    public converterFromList(emails: string[]): string[] {
-      return emails;
-    }
+
   }
   
