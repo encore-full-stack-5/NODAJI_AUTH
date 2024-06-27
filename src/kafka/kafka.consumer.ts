@@ -1,8 +1,8 @@
 import { Kafka } from 'kafkajs';
 import { KafkaStatus } from './dto/kafka-status.dto';
-import { UsersService } from '../users/users.service'; // Adjust the path as necessary
+import { UsersService } from '../users/users.service';
 
-let usersService: UsersService; // Declare a variable for UsersService
+let usersService: UsersService;
 
 export const setUserService = (service: UsersService) => {
   usersService = service;

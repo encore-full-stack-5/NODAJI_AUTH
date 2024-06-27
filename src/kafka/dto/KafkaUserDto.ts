@@ -6,8 +6,6 @@ export class KafkaUserDto {
       public rank: number,
       public game: string,
       public email: string
-      
-
     ) {}
 
   }

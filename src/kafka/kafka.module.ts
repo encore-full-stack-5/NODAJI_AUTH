@@ -18,15 +18,6 @@ import { UsersService } from '../users/users.service';
           },
         },
       },
-      {
-        name: 'ACCOUNT_KAFKA_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            brokers: ['192.168.0.20:9092'],
-          },
-        },
-      },
     ]),
   ],
   providers: [KafkaService],

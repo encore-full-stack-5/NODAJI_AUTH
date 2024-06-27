@@ -13,7 +13,6 @@ export class KafkaService {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     @Inject('KAFKA_SERVICE') private readonly clientKafka: ClientKafka, 
-    @Inject('ACCOUNT_KAFKA_SERVICE') private readonly accountClientKafka: ClientKafka, 
   ) {}
 
   async sendUpdateMessage(user: User): Promise<void> {
@@ -27,7 +26,7 @@ export class KafkaService {
     const accountDto: KafkaAccountDto = this.createKafkaAccountDto(user);
     const topic = 'account-topic';
     const message = { status: 'createAccount', data: accountDto }; 
-    await this.accountClientKafka.emit(topic, message); 
+    await this.clientKafka.emit(topic, message); 
   }
 
   async sendSinupMessge(req: RequestDTO): Promise<void> { 
@@ -62,8 +61,6 @@ export class KafkaService {
 
   async onModuleInit() {
     this.clientKafka.subscribeToResponseOf('account-topic');
-    this.accountClientKafka.subscribeToResponseOf('account-topic'); 
     await this.clientKafka.connect();
-    await this.accountClientKafka.connect(); 
   }
 }
