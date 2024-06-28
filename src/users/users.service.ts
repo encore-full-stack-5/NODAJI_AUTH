@@ -12,6 +12,8 @@ import { KafkaService } from 'src/kafka/kafka.service';
 import { RedisService } from 'src/redis/redis.service';
 import { User } from './user.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { CerticicationDTO } from './dto/certificationDTO';
+
 
 @Injectable()
 export class UsersService {
@@ -73,7 +75,7 @@ export class UsersService {
   }
 
   async certificationRequest(req: RequestDTO): Promise<void> {
-
+      console.log(req.email)
     const exist = await this.userRepository.findOne({
       where: { email: req.email },
     });
@@ -83,15 +85,29 @@ export class UsersService {
     await this.kafkaService.sendSinupMessge(req); // nodagi_email 서버로 인증 메일 요청 보내기
   }
 
-  async save(req: RequestDTO): Promise<String> {
-    
-    const findCertification = await this.redisService.getValueByKey(req.email); // 3분 유효시간안에 Redis에서 인증 값 찾기
+  async emailCertification(req: RequestDTO): Promise<{ message: string, certification: CerticicationDTO}> {
+    const findCertification = await this.redisService.getValueByKey(req.email); // 1분 유효시간안에 Redis에서 인증 값 찾기
     const isTrue = await this.handleCertification(req.email, findCertification, req.confirmationRequest);
 
+    const certification = new CerticicationDTO();
+   
     if (!isTrue) {
-      throw new NotAcceptableException('인증 실패');
+      certification.certification = false;
+      return { message: "인증에 실패하였습니다.", certification };
     }
+    certification.certification = true;
+    return { message: "인증에 성공하였습니다.", certification };
+  }  
 
+  async handleCertification(email: string, certification: string, confirmationRequest: string): Promise<boolean> {
+    const trimmedCertification = certification.replace(/^"|"$/g, '');        //redis value 값에 "" 따옴표로 삭제 로직
+    const trimmedConfirmationRequest = confirmationRequest.replace(/^"|"$/g, ''); 
+    const isTrue = trimmedCertification === trimmedConfirmationRequest; // 두 값이 같을 경우 
+    return isTrue;
+}
+
+  async save(req: RequestDTO): Promise<String> {
+    
     const saltOrRounds = 10; // 해싱 코드 설정
     const hash = await bcrypt.hash(req.password, saltOrRounds); // 비밀번호 해시코딩
 
@@ -110,12 +126,7 @@ export class UsersService {
   
   }
 
-  async handleCertification(email: string, certification: string, confirmationRequest: string): Promise<boolean> {
-    const trimmedCertification = certification.replace(/^"|"$/g, '');        //redis value 값에 "" 따옴표로 삭제 로직
-    const trimmedConfirmationRequest = confirmationRequest.replace(/^"|"$/g, ''); 
-    const isTrue = trimmedCertification === trimmedConfirmationRequest; // 두 값이 같을 경우 
-    return isTrue;
-}
+
  
 async updateUserPoints(userId: string, points: number): Promise<User> {
   const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -123,8 +134,8 @@ async updateUserPoints(userId: string, points: number): Promise<User> {
     user.point = points;
     return await this.userRepository.save(user);
   }
-  throw new Error('User not found');
-}
+  throw new Error('유저가 보여지지 않습니다.');
+  }
 
 
 }

@@ -17,20 +17,7 @@ const consumer = kafka.consumer({ groupId: 'auth-group' });
 const consumeMessages = async (topic: string) => {
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: true });
-
-  await consumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      const value = message.value.toString();
-      console.log({
-        partition,
-        offset: message.offset,
-        value,
-      });
-
-      const status: KafkaStatus<any> = JSON.parse(value);
-      await listenerKafkaStatus(status); 
-    },
-  });
+  await consumer.run();
 };
 
 const listenerKafkaStatus = async (status: KafkaStatus<any>) => {
@@ -47,7 +34,6 @@ const listenerKafkaStatus = async (status: KafkaStatus<any>) => {
       break;
 
     default:
-      console.warn('Unknown status:', status.status);
   }
 };
 

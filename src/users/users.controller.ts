@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
 import { UserGuard } from './users.guard';
 import { Response } from 'express';
 
-@Controller('users')
+@Controller('auth')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
@@ -58,6 +58,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @Post('signUp')
   async saveUser(@Body() req: RequestDTO) {
+    console.log("회원가입 요청 반응")
     const userEmail = await this.userService.save(req);
     return userEmail;
   }
@@ -66,6 +67,17 @@ export class UsersController {
   @Post('certification')
   async certificationRequest(@Body() req: RequestDTO, @Res() res: Response) {
     await this.userService.certificationRequest(req);
-    return res.json({ message: "입력해주신 이메일에 인증번호를 찾아 인증해주세요." });
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('certification/request')
+  async emailCertification(@Body() req: RequestDTO, @Res() res: Response) {
+    const result = await this.userService.emailCertification(req);
+    return res.json(result);
+  }
+  
+
+
+
+
 }

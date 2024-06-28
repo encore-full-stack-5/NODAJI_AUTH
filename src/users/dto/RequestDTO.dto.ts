@@ -4,5 +4,6 @@ export interface RequestDTO {
   password: string;
   point: number;
   confirmationRequest: string;
+  certification:boolean;
 
 }

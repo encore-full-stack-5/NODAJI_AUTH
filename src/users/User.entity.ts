@@ -30,6 +30,4 @@ export class User {
   @CreateDateColumn()
   date: Date;
 
-  @Column({ default: false, nullable: true })
-  certification: boolean;
 }
