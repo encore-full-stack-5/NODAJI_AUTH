@@ -8,10 +8,11 @@ import {
   UseGuards,
   Res,
 } from '@nestjs/common';
-import { RequestDTO } from './dto/RequestDTO.dto';
+
 import { UsersService } from './users.service';
 import { UserGuard } from './users.guard';
 import { Response } from 'express';
+import { RequestDTO } from './dto/RequestDTO.dto';
 
 @Controller('auth')
 export class UsersController {

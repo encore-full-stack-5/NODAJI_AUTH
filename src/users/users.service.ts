@@ -10,9 +10,11 @@ import { RequestDTO } from './dto/RequestDTO.dto';
 import { JwtService } from '@nestjs/jwt';
 import { KafkaService } from 'src/kafka/kafka.service';
 import { RedisService } from 'src/redis/redis.service';
-import { User } from './user.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { CerticicationDTO } from './dto/certificationDTO';
+
+
+import { CerticicationDTO } from './dto/CertificationDTO';
+import { User } from './User.entity';
 
 
 @Injectable()

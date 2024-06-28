@@ -2,10 +2,10 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { KafkaUserDto } from './dto/KafkaUserDto';
 import { ClientKafka } from '@nestjs/microservices';
-import { User } from '../users/user.entity';
 import { RequestDTO } from 'src/users/dto/RequestDTO.dto';
 import { KafkaAccountDto } from './dto/KafkaAccountDto';
 import { KafkaEmailDto } from './dto/KafkaEmailDto';
+import { User } from '../users/User.entity';
 
 @Injectable()
 export class KafkaService {

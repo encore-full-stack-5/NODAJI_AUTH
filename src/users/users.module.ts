@@ -6,8 +6,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { KafkaModule } from 'src/kafka/kafka.module'; 
 import { RedisModule } from 'src/redis/redis.module'; 
-import { User } from './user.entity';
 import { jwtConstants } from 'src/jwt/jwtConstants';
+import { User } from './User.entity';
+
 
 
 
@@ -16,7 +17,7 @@ import { jwtConstants } from 'src/jwt/jwtConstants';
     TypeOrmModule.forFeature([User]), 
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '60h' },
     }),
     KafkaModule,
     RedisModule,
