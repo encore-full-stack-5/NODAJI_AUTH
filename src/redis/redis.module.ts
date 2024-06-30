@@ -12,14 +12,14 @@ import Redis from 'ioredis';
         name: 'REDIS_SERVICE',
         transport: Transport.REDIS,
         options: {
-          host: 'localhost',
+          host: 'auth-redis',  
           port: 6379,
         },
       },
     ]),
     NestRedisModule.forRoot({
       config: {
-        host: 'localhost',
+        host: 'auth-redis',  
         port: 6379,
       },
     }),
@@ -29,7 +29,7 @@ import Redis from 'ioredis';
       provide: 'REDIS_CLIENT',
       useFactory: () => {
         return new Redis({
-          host: 'localhost',
+          host: 'auth-redis', 
           port: 6379,
         });
       },

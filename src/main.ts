@@ -10,7 +10,7 @@ async function bootstrap() {
     transport: Transport.KAFKA,
     options: {
       client: {
-        brokers: ['192.168.0.20:9092'],
+        brokers: ['35.184.196.158:9094'],
       },
       consumer: {
         groupId: 'email',
@@ -22,7 +22,7 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.REDIS,
     options: {
-      host: 'localhost',
+      host: 'auth-redis', 
       port: 6379,
     },
   });
@@ -31,10 +31,11 @@ async function bootstrap() {
     origin: ['http://localhost:5173', 'http://localhost:5174'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
-    exposedHeaders: ['Authorization'], // 추가된 부분
+    exposedHeaders: ['Authorization'],
   });
 
   await app.startAllMicroservices();
+  app.enableShutdownHooks();
   await app.listen(3000);
 }
 

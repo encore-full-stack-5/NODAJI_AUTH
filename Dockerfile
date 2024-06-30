@@ -1,34 +1,24 @@
-# Stage 1: Build the application
-FROM node:20.11.1 as builder
+FROM node:20.11.1-alpine As development
+WORKDIR /usr/src/app
+COPY --chown=node:node package*.json ./
+# Add --legacy-peer-deps to npm ci command
+RUN npm ci --legacy-peer-deps
+COPY --chown=node:node . .
+USER node
 
-WORKDIR /app
-
-# Copy package.json and package-lock.json (if available)
-COPY package*.json ./
-
-# Install dependencies with --legacy-peer-deps
-RUN npm install --legacy-peer-deps
-
-# Copy the rest of the application code
-COPY . .
-
-# Build the application
+FROM node:20.11.1-alpine As build
+WORKDIR /usr/src/app
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node . .
 RUN npm run build
+ENV NODE_ENV production
+# Add --legacy-peer-deps to npm ci command
+RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
+USER node
 
-# Stage 2: Create the production image
-FROM node:20.11.1
-
-WORKDIR /app
-
-# Copy the build output and package.json
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-
-# Install only production dependencies with --legacy-peer-deps
-RUN npm install --only=production --legacy-peer-deps
-
-# Expose the port the app runs on
-EXPOSE 8081
-
-# Command to run the application
-CMD ["node", "dist/main"]
+FROM node:20.11.1-alpine As production
+WORKDIR /usr/src/app
+COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+CMD [ "node", "dist/main.js" ]

@@ -14,7 +14,7 @@ import { UsersService } from '../users/users.service';
         transport: Transport.KAFKA,
         options: {
           client: {
-            brokers: ['192.168.0.20:9092'],
+            brokers: ['35.184.196.158:9094'],
           },
         },
       },

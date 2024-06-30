@@ -9,7 +9,8 @@ export const setUserService = (service: UsersService) => {
 };
 
 const kafka = new Kafka({
-  brokers: ['192.168.0.20:9092'],
+    clientId: 'nestjs-consumer-server',
+  brokers: ['35.184.196.158:9094'],
 });
 
 const consumer = kafka.consumer({ groupId: 'auth-group' });
